@@ -1,10 +1,11 @@
 // ==UserScript==
-// @name         烂虎扑标识
-// @namespace    http://tampermonkey.net/
+// @name         烂虎扑屏蔽器
+// @namespace    sssoftwar
 // @version      0.1
-// @description  try to take over the world!
+// @description  可以屏蔽虎扑坏帖和你不想看到的内容
 // @author       sssoftwar
 // @updateURL    https://raw.githubusercontent.com/sssoftwar/bad-hupu/master/main.js
+// @license      Apache Licence 2.0
 // @match        https://*.hupu.com/*
 // @icon         https://bkimg.cdn.bcebos.com/pic/adaf2edda3cc7cd98d1095b4f549363fb80e7bec3b0f?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UxMTY=,g_7,xp_5,yp_5/format,f_auto
 // @grant        none
@@ -54,7 +55,8 @@
                         // 不需要看屏蔽效果反馈，就这样
                         //$(badLink).parent().parent().parent().css({'background-color':'yellow','color':'grey'}).remove()
                         // 想看屏蔽效果，就这样
-                        $(badLink).parent().parent().parent().css({'background-color':'yellow','color':'grey'}).fadeOut(4000)
+                        // 这里不知道怎么回事有时候要三个parent有时候要两个，不然就跟else if合并了，持续观察中..
+                        $(badLink).parent().parent().css({'background-color':'yellow','color':'grey'}).fadeOut(4000)
                     }
                     else if (/bbs-sl-web-post-body/.test(str)){
 //                        console.log($(badLink).parent().parent())
