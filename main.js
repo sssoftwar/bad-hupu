@@ -4,33 +4,44 @@
 // @version      0.1
 // @description  可以屏蔽虎扑坏帖和你不想看到的内容
 // @author       sssoftwar
-// @updateURL    https://raw.githubusercontent.com/sssoftwar/bad-hupu/master/main.js
 // @license      Apache Licence 2.0
 // @match        https://*.hupu.com/*
 // @icon         https://bkimg.cdn.bcebos.com/pic/adaf2edda3cc7cd98d1095b4f549363fb80e7bec3b0f?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UxMTY=,g_7,xp_5,yp_5/format,f_auto
-// @grant        none
+// @grant        unSafeWindow
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        GM_log
+// @grant        GM_notification
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js
 // ==/UserScript==
 
 (function() {
     'use strict';
-    $(document).ready(function() {
-    console.log('jquery')
-        // 可以添加关键字来屏蔽不想看的内容（仅匹配标题中的关键字）
-        var banKeyword = [
-                          '王思聪',
-                          '孙一宁',
-                          '鞠婧祎',
-                          '刘浩存',
-                          '钟薛高',
-                         ]
-        var keywordCount = 0;
-        for(var j = 0; j < banKeyword.length; j++){
-            keywordCount += $('li:contains(' + banKeyword[j] + ')').length
-//            console.log(keywordCount)
-          $('li:contains(' + banKeyword[j] + ')').css({'background-color':'yellow','color':'grey'}).remove()
-          $('.list-item-wrap:contains(' + banKeyword[j] + ')').css({'background-color':'yellow','color':'grey'}).remove()
+    $("head").append($(`<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">`));
+    $("head").append($(`<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">`));
+    $("head").append($(`<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>`));
+    $("body").append($(`<div class="fixed-action-btn">
+  <a class="btn-floating btn-large white">
+    <i class="red-text large material-icons">lightbulb_outline</i>
+  </a>
+  <ul>
+    <li><a class="btn-floating white"><i class="red-text material-icons">mode_edit</i></a></li>
+    <li id='showBanList'><a class="btn-floating white"><i class="red-text material-icons">reorder</i></a></li>
+  </ul>
+</div>`));
+    $("body").append($(`<div id="keywordList" class="card-panel green" style="background:grey;display:none; z-index:999;text-align:center;width: 40vh;height: 20vh;position: fixed;left: 0;top: 0;bottom: 0;right: 0;margin: auto;">
+    <div class="chips chips-placeholder chips-initial"></div>
+    </div>`));
+    const FUCK = 'fuck'
+    GM_log(GM_getValue(FUCK))
+    var elems = document.querySelectorAll('.fixed-action-btn');
+        var options = {
+            direction: 'left'
         }
+    var instances = M.FloatingActionButton.init(elems, options);
+
+    GM_log($('.fixed-action-btn'))
         var link = ''
         var links = []
         $('[href$=".html"]').each(function(){
@@ -42,31 +53,44 @@
 
         for(var i = 0; i < links.length; i++){
             $.ajax({url: links[i],async:true,success:function(result){
-
                 if(/您无法访问该帖子/.test(result)||/您访问的帖子不存在/.test(result)) {
                     badLinkCount++
+                    GM_log(badLinkCount)
                     var linkSuffix = $(this)[0].url.match(/\d+/)[0]
-//                    console.log(linkSuffix)
                     var badLink = "[href=\"/" + linkSuffix + ".html\"]"
                     console.log("坏帖子：" + badLink)
-                    var str = $(badLink).parent().parent()[0].className
-                    if(str === 'list-item') {
+                    GM_log($(badLink).parent().parent()[0].className)
+
+                    if (/bbs-sl-web-post-body/.test($(badLink).parent().parent()[0].className)){
+//                        console.log($(badLink).parent().parent())
+                        // 不需要看屏蔽效果反馈，就这样
+                        //$(badLink).parent().parent().css({'background-color':'yellow','color':'grey'}).remove()
+                        // 想看屏蔽效果，就这样
+                        $(badLink).parent().parent().css({'background-color':'yellow','color':'grey'})
+                    }
+                    // “步行街热帖”的操作
+                    else if(/list-item-wrap/.test($(badLink).parent().parent().parent()[0].className) || /list-item-wrap/.test($(badLink).parent().parent().parent()[1].className)) {
+                        GM_log('长度：' + $(badLink).parent().parent().parent().length)
+                        GM_log($(badLink).parent().parent().parent(0))
+                        if($(badLink).parent().parent().parent().length == 1) {
 //                        console.log($(badLink).parent().parent().parent())
                         // 不需要看屏蔽效果反馈，就这样
                         //$(badLink).parent().parent().parent().css({'background-color':'yellow','color':'grey'}).remove()
                         // 想看屏蔽效果，就这样
                         // 这里不知道怎么回事有时候要三个parent有时候要两个，不然就跟else if合并了，持续观察中..
-                        $(badLink).parent().parent().css({'background-color':'yellow','color':'grey'}).fadeOut(4000)
-                    }
-                    else if (/bbs-sl-web-post-body/.test(str)){
-//                        console.log($(badLink).parent().parent())
-                        // 不需要看屏蔽效果反馈，就这样
-                        //$(badLink).parent().parent().css({'background-color':'yellow','color':'grey'}).remove()
-                        // 想看屏蔽效果，就这样
-                        $(badLink).parent().parent().css({'background-color':'yellow','color':'grey'}).fadeOut(4000)
+                        $(badLink).parent().parent().parent(0).css({'background-color':'orange','color':'grey'})
+                        }
+                        else {
+                            GM_log('右边也有')
+                            // 先把主列表中的坏链接处理了
+                            $(badLink).parent().parent().parent(1).css({'background-color':'orange','color':'grey'})
+                            // 再把右边列表中的坏链接处理了
+                            $(badLink).children().css({'background-color':'green','color':'grey'})
+                            GM_log($(badLink).children())
+                        }
                     }
                     else {
-                        $(badLink).css({'background-color':'yellow','color':'grey'}).fadeOut(4000)
+                        $(badLink).css({'background-color':'red','color':'grey'})
                     }
 
                 }
@@ -74,33 +98,72 @@
                     console.log(i + ' 或许是正经帖子')
             }})
         }
-        // 在板块标题处显示处理的坏帖子数量
-        if($('.middle-label').length != 0) {
-          $('.middle-label').fadeOut(2000, function() {
-            $(this).after(function(){
-              if(keywordCount == 0 && badLinkCount == 0)
-                return "<h1 class='badLinkCount' style='color:#c01e2f;font-size:50px'>►此页无烂虎扑</h1>"
-              else
-                return "<h1 class='badLinkCount' style='color:#c01e2f;font-size:50px'>►将为你隐藏" + (keywordCount + badLinkCount) + "个烂虎扑</h1>"
+
+    // 可以添加关键字来屏蔽不想看的内容（仅匹配标题中的关键字）
+    $('.chips').keyup(function(event){
+        if(event.keyCode == 13 || event.keyCode == 8) {
+            var data = M.Chips.getInstance(document.querySelector('.chips')).chipsData
+            var banKeyword = []
+            data.forEach(function(e){
+                var keyword = e.tag
+                banKeyword.push(keyword)
             })
-            $('.badLinkCount').fadeOut(2000, function() {
-              $('.middle-label').fadeIn(2000)
-            })
-          })
+            GM_log(banKeyword)
+            // 将数据存储起来
+            GM_setValue('banKeyword', banKeyword)
+            GM_getValue('banKeyword')
         }
-        else if($('.bbs-sl-web-intro').length != 0) {
-          $('.bbs-sl-web-intro').fadeOut(2000, function() {
-            $(this).after(function(){
-              if(keywordCount == 0 && badLinkCount == 0)
-                return "<h1 class='badLinkCount' style='color:#c01e2f;font-size:128px'>►此页无烂虎扑</h1>"
-              else
-                return "<h1 class='badLinkCount' style='color:#c01e2f;font-size:85px'>►将为你隐藏" + (keywordCount + badLinkCount) + "个烂虎扑</h1>"
+    })
+
+    // 显示屏蔽关键字列表（设置过多关键字会导致显示有点不和谐，待修复）
+    function getBanKeyword() {
+        // 挂载需要填入数据并设置可见性为true
+        if($('#keywordList').length != 0) {
+            $('#keywordList').css('display','inline')
+            var elems = document.querySelectorAll('.chips')
+            var banKeyword = GM_getValue('banKeyword')
+            var keywordList = []
+            banKeyword.forEach(function(e){
+                GM_log(e)
+                var tag = e
+                var obj = {}
+                obj.tag = tag
+                keywordList.push(obj)
             })
-            $('.badLinkCount').fadeOut(2000, function() {
-              $('.bbs-sl-web-intro').fadeIn(2000)
-            })
-          })
+            var options = {
+                data: keywordList,
+                placeholder: '添加一个屏蔽词',
+                secondaryPlaceholder: '继续添加',
+            }
+            var instances = M.Chips.init(elems, options)
         }
+    }
+    $(document).ready(function() {
+        var banKeyword = GM_getValue('banKeyword')
+        $('#showBanList').click(function(){
+            getBanKeyword()
+        })
+        var keywordCount = 0;
+        for(var j = 0; j < banKeyword.length; j++){
+            keywordCount += $('li:contains(' + banKeyword[j] + ')').length
+//            console.log(keywordCount)
+          $('li:contains(' + banKeyword[j] + ')').css({'background-color':'purple','color':'grey'})
+          $('.list-item-wrap:contains(' + banKeyword[j] + ')').css({'background-color':'purple','color':'grey'})
+        }
+        // 提示屏蔽的帖子数量
+        setTimeout(function(){
+            var message = '已屏蔽' + badLinkCount + '条烂虎扑'
+            GM_notification({
+                title: '虎扑屏蔽器',
+                image: 'https://bkimg.cdn.bcebos.com/pic/adaf2edda3cc7cd98d1095b4f549363fb80e7bec3b0f?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UxMTY=,g_7,xp_5,yp_5/format,f_auto',
+                text: message,
+                timeout: 5000,
+                //highlight: true,
+                ondone: function(){GM_log('done')},
+                onclick: function(){GM_log('click')},
+            })
+        }, 2000)
+
         // 屏蔽虎扑游戏
         for(var ii = 0; ii<$('.right-post-title').length;ii++){
             //if($('.right-post-title')[ii].innerHTML=='热门游戏-即点即玩')
