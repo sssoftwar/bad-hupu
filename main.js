@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         烂虎扑屏蔽器
 // @namespace    sssoftwar
-// @version      0.2
+// @version      0.3
 // @description  可以屏蔽虎扑坏帖和你不想看到的内容
 // @author       sssoftwar
 // @license      Apache Licence 2.0
@@ -37,8 +37,6 @@
     $('#container').click(function(){
         $('#keywordList').fadeOut(500)
     })
-    const FUCK = 'fuck'
-    GM_log(GM_getValue(FUCK))
     var fixedActionBtnElems = document.querySelectorAll('.fixed-action-btn');
     var fixedActionBtnOptions = {
         direction: 'left'
@@ -55,7 +53,6 @@
         transitionMovement: 10
     }
     var tooltippedInstances = M.Tooltip.init(tooltippedElems, tooltippedOptions);
-    GM_log($('.fixed-action-btn'))
         var link = ''
         var links = []
         $('[href$=".html"]').each(function(){
@@ -85,29 +82,29 @@
                     // “步行街热帖”的操作
                     else if(/list-item-wrap/.test($(badLink).parent().parent().parent()[0].className) || /list-item-wrap/.test($(badLink).parent().parent().parent()[1].className)) {
                         GM_log('长度：' + $(badLink).parent().parent().parent().length)
-                        GM_log($(badLink).parent().parent().parent(0))
                         if($(badLink).parent().parent().parent().length == 1) {
-//                        console.log($(badLink).parent().parent().parent())
-                        // 不需要看屏蔽效果反馈，就这样
-                        //$(badLink).parent().parent().parent().css({'background-color':'yellow','color':'grey'}).remove()
-                        // 想看屏蔽效果，就这样
-                        // 这里不知道怎么回事有时候要三个parent有时候要两个，不然就跟else if合并了，持续观察中..
-                        $(badLink).parent().parent().parent(0).css({'background-color':'brown','color':'grey'}).fadeOut(4000)
+                            //console.log($(badLink).parent().parent().parent())
+                            $(badLink).parent().parent().parent().css({'background-color':'#90caf9','color':'grey'}).fadeOut(4000)
                         }
                         else {
                             GM_log('右边也有')
                             // 先把主列表中的坏链接处理了
 //                            console.log($(badLink).parent().parent().parent()[1].className)
-                            if($(badLink).parent().parent().parent()[1].className === 'list-item-wrap')
-                                $(badLink).parent().parent().parent(1).css({'background-color':'orange','color':'grey'}).fadeOut(4000)
-                            console.log($(badLink).children()[1].className)
+                            if($(badLink).parent().parent().parent()[1].className === 'list-item-wrap') {
+                                console.log('主列表：')
+//                                console.log($($(badLink).parent().parent().parent()[1]))
+                                $($(badLink).parent().parent().parent()[1]).css({'background-color':'pink','color':'grey'}).fadeOut(4000)
+                                }
+//                            console.log('右侧className：')
+//                            console.log($(badLink).children()[1].className)
                             // 再把右边列表中的坏链接处理了
                             if($(badLink).children()[1].className === 'right-post-item') {
                                 $(badLink).children().css({'background-color':'green','color':'grey'}).fadeOut(4000)
-                                GM_log($(badLink).children())
+                                //GM_log($(badLink).children())
                             }
                         }
                     }
+                    // 正常来说不会出现此情况
                     else {
                         $(badLink).css({'background-color':'red','color':'grey'}).fadeOut(4000)
                     }
@@ -165,9 +162,12 @@
         var keywordCount = 0;
         for(var j = 0; j < banKeyword.length; j++){
             keywordCount += $('li:contains(' + banKeyword[j] + ')').length
+            keywordCount += $('.list-item-wrap:contains(' + banKeyword[j] + ')').length
+            keywordCount += $('.right-post-item:contains(' + banKeyword[j] + ')').length
             console.log('关键字屏蔽数量：' + keywordCount)
           $('li:contains(' + banKeyword[j] + ')').css({'background-color':'purple','color':'grey'}).fadeOut(4000)
           $('.list-item-wrap:contains(' + banKeyword[j] + ')').css({'background-color':'purple','color':'grey'}).fadeOut(4000)
+          $('.right-post-item:contains(' + banKeyword[j] + ')').css({'background-color':'purple','color':'grey'}).fadeOut(4000)
         }
         // 提示屏蔽的帖子数量
         setTimeout(function(){
