@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         烂虎扑屏蔽器
 // @namespace    sssoftwar
-// @version      0.1
+// @version      0.2
 // @description  可以屏蔽虎扑坏帖和你不想看到的内容
 // @author       sssoftwar
 // @license      Apache Licence 2.0
@@ -27,7 +27,7 @@
   </a>
   <ul>
     <li><a class="btn-floating white"><i class="red-text material-icons">mode_edit</i></a></li>
-    <li id='showBanList'><a class="btn-floating white"><i class="red-text material-icons">reorder</i></a></li>
+    <li id='showBanList'><a class="btn-floating white tooltipped"><i class="red-text material-icons">reorder</i></a></li>
   </ul>
 </div>`));
     $("body").append($(`<div id="keywordList" class="card-panel green" style="background:grey;display:none; z-index:999;text-align:center;width: 40vh;height: 20vh;position: fixed;left: 0;top: 0;bottom: 0;right: 0;margin: auto;">
@@ -39,12 +39,22 @@
     })
     const FUCK = 'fuck'
     GM_log(GM_getValue(FUCK))
-    var elems = document.querySelectorAll('.fixed-action-btn');
-        var options = {
-            direction: 'left'
-        }
-    var instances = M.FloatingActionButton.init(elems, options);
-
+    var fixedActionBtnElems = document.querySelectorAll('.fixed-action-btn');
+    var fixedActionBtnOptions = {
+        direction: 'left'
+    }
+    var instances = M.FloatingActionButton.init(fixedActionBtnElems, fixedActionBtnOptions);
+    var tooltippedElems = document.querySelectorAll('.tooltipped');
+    var tooltippedOptions = {
+        enterDelay: 200,
+        exitDelay: 0,
+        inDuration: 200,
+        outDuration: 200,
+        position: 'top',
+        html: '屏蔽词',
+        transitionMovement: 10
+    }
+    var tooltippedInstances = M.Tooltip.init(tooltippedElems, tooltippedOptions);
     GM_log($('.fixed-action-btn'))
         var link = ''
         var links = []
