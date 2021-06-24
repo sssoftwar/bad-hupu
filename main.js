@@ -5,7 +5,7 @@
 // @description  可以屏蔽虎扑坏帖和你不想看到的内容
 // @author       sssoftwar
 // @license      Apache Licence 2.0
-// @match        https://*.hupu.com/*
+// @match        https://bbs.hupu.com/*
 // @icon         https://bkimg.cdn.bcebos.com/pic/adaf2edda3cc7cd98d1095b4f549363fb80e7bec3b0f?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UxMTY=,g_7,xp_5,yp_5/format,f_auto
 // @grant        unSafeWindow
 // @grant        GM_setValue
