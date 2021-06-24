@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         烂虎扑屏蔽器
 // @namespace    sssoftwar
-// @version      0.5
+// @version      0.6
 // @description  可以屏蔽虎扑坏帖和你不想看到的内容
 // @author       sssoftwar
 // @license      Apache Licence 2.0
@@ -151,29 +151,10 @@
             }})
         }
 
-    // 可以添加关键字来屏蔽不想看的内容（仅匹配标题中的关键字）
-    /*
-    $('.chips').keyup(function(event){
-        if(event.keyCode == 13 || event.keyCode == 8) {
-            var data = M.Chips.getInstance(document.querySelector('.chips')).chipsData
-            var banKeyword = []
-            data.forEach(function(e){
-                var keyword = e.tag
-                banKeyword.push(keyword)
-            })
-            GM_log(banKeyword)
-            // 将数据存储起来
-            GM_setValue('banKeyword', banKeyword)
-            //GM_getValue('banKeyword')
-        }
-    })
-    */
-
     // 显示屏蔽关键字列表（设置过多关键字会导致显示有点不和谐，待修复）
     function getBanKeyword() {
         // 挂载需要填入数据并设置可见性为true
         if($('#keywordList').length != 0) {
-            $('#keywordList').css('display','inline')
             var elems = document.querySelectorAll('.chips')
             var banKeyword = GM_getValue('banKeyword')
             var keywordList = []
@@ -195,7 +176,15 @@
                 },
             }
             var instances = M.Chips.init(elems, options)
+            alterChipsCardSize(banKeyword.length)
         }
+    }
+    // 根据chips数量来改变该card-panel的大小
+    function alterChipsCardSize(length) {
+        var height = (parseInt(length / 4) + 1) * 32 + 120
+        height += 'px'
+        console.log('height:' + height)
+        $('#keywordList').css({'display':'inline','height': height})
     }
     // 用于chips触发“添加”和“删除”事件后保存数据
     function saveChipsData() {
@@ -206,6 +195,7 @@
             banKeyword.push(keyword)
         })
         GM_log(banKeyword)
+        alterChipsCardSize(banKeyword.length)
         // 将数据存储起来
         GM_setValue('banKeyword', banKeyword)
     }
@@ -215,10 +205,10 @@
         if(GM_getValue('firstTime') == null) {
             GM_setValue('banKeyword', [])
             GM_setValue('firstTime', 1)
-            GM_log('第' + GM_getValue('firstTime') + '次：')
+//            GM_log('第' + GM_getValue('firstTime') + '次：')
             setTimeout(function(){
                 addFeatureDiscovery(1)},1000)
-            console.log(GM_getValue('banKeyword'))
+//            console.log(GM_getValue('banKeyword'))
         }
         else if(GM_getValue('firstTime') < 3) {
             var count = GM_getValue('firstTime')
@@ -227,13 +217,13 @@
                 addFeatureDiscovery(count)
             },1000)
             GM_setValue('firstTime', count)
-            GM_log('这是第' + GM_getValue('firstTime') + '次')
-            console.log(GM_getValue('banKeyword'))
+//            GM_log('这是第' + GM_getValue('firstTime') + '次')
+//            console.log(GM_getValue('banKeyword'))
         }
-        else {
-            GM_log('已非新手指引阶段：')
-            console.log(GM_getValue('banKeyword'))
-        }
+//        else {
+//            GM_log('已非新手指引阶段')
+//            console.log(GM_getValue('banKeyword'))
+//        }
         // 根据关键字进行屏蔽
         var banKeyword = GM_getValue('banKeyword')
         $('#showBanList').click(function(){
