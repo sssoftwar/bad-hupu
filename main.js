@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         烂虎扑屏蔽器
 // @namespace    sssoftwar
-// @version      0.4
+// @version      0.5
 // @description  可以屏蔽虎扑坏帖和你不想看到的内容
 // @author       sssoftwar
 // @license      Apache Licence 2.0
@@ -12,24 +12,34 @@
 // @grant        GM_getValue
 // @grant        GM_log
 // @grant        GM_notification
+// @grant        GM_listValues
+// @grant        GM_deleteValue
 // @require      https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js
 // ==/UserScript==
 
 (function() {
     'use strict';
+    /*
+     * 用于调试用户引导及banKeyword初始化
+    GM_deleteValue('firstTime')
+    GM_deleteValue('banKeyword')
+    */
     $("head").append($(`<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">`));
     $("head").append($(`<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">`));
     $("head").append($(`<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>`));
+    // 添加右下角fab
     $("body").append($(`<div class="fixed-action-btn">
-  <a class="btn-floating btn-large white">
+  <a id="fab" class="btn-floating btn-large white">
     <i class="red-text large material-icons">lightbulb_outline</i>
   </a>
   <ul>
-    <li><a class="btn-floating white"><i class="red-text material-icons">mode_edit</i></a></li>
-    <li id='showBanList'><a class="btn-floating white tooltipped"><i class="red-text material-icons">reorder</i></a></li>
+    <li><a class="btn-floating white tooltipped" data-tooltip="暂无功能"><i class="red-text material-icons">mode_edit</i></a></li>
+    <li id='showBanList'><a class="btn-floating white tooltipped" data-tooltip="屏蔽词"><i class="red-text material-icons">reorder</i></a></li>
   </ul>
-</div>`));
+</div>
+`));
+    // 添加屏蔽词的chips
     $("body").append($(`<div id="keywordList" class="card-panel green" style="background:grey;display:none; z-index:999;text-align:center;width: 40vh;height: 20vh;position: fixed;left: 0;top: 0;bottom: 0;right: 0;margin: auto;">
     <div class="chips chips-placeholder chips-initial"></div>
     </div>`));
@@ -37,11 +47,14 @@
     $('#container').click(function(){
         $('#keywordList').fadeOut(500)
     })
+    // md组件的各种初始化
+    // fab初始化
     var fixedActionBtnElems = document.querySelectorAll('.fixed-action-btn');
     var fixedActionBtnOptions = {
         direction: 'left'
     }
     var instances = M.FloatingActionButton.init(fixedActionBtnElems, fixedActionBtnOptions);
+    // tooltipped初始化
     var tooltippedElems = document.querySelectorAll('.tooltipped');
     var tooltippedOptions = {
         enterDelay: 200,
@@ -49,10 +62,33 @@
         inDuration: 200,
         outDuration: 200,
         position: 'top',
-        html: '屏蔽词',
         transitionMovement: 10
     }
     var tooltippedInstances = M.Tooltip.init(tooltippedElems, tooltippedOptions);
+
+    // 添加新用户引导
+    function addFeatureDiscovery(count) {
+    $('body').append($(`<div class="tap-target" data-target="fab">
+    <div class="tap-target-content">
+      <h5 style="color:white">自定义设置</h5><br/>
+      <p style="color:white">在这里进行自定义配置</p><br/>
+      <p style="color:white">此新用户引导只显示3次，这是第`+count+`次</p>
+    </div>
+  </div>`))
+
+    // FeatureDiscovery初始化
+    //$('.tap-target').tapTarget()
+    var tapTargetElems = document.querySelectorAll('.tap-target')
+    var tapTargetOptions = {
+        function() {console.log('open')},
+        function(){console.log('close')}
+    }
+    var tapTargetInstances = M.TapTarget.init(tapTargetElems, tapTargetOptions)
+    //console.log(tapTargetInstances)
+    //console.log(tapTargetInstances[0])
+        $('.tap-target').tapTarget('open')
+    }
+
         var link = ''
         var links = []
         $('[href$=".html"]').each(function(){
@@ -116,6 +152,7 @@
         }
 
     // 可以添加关键字来屏蔽不想看的内容（仅匹配标题中的关键字）
+    /*
     $('.chips').keyup(function(event){
         if(event.keyCode == 13 || event.keyCode == 8) {
             var data = M.Chips.getInstance(document.querySelector('.chips')).chipsData
@@ -127,9 +164,10 @@
             GM_log(banKeyword)
             // 将数据存储起来
             GM_setValue('banKeyword', banKeyword)
-            GM_getValue('banKeyword')
+            //GM_getValue('banKeyword')
         }
     })
+    */
 
     // 显示屏蔽关键字列表（设置过多关键字会导致显示有点不和谐，待修复）
     function getBanKeyword() {
@@ -149,11 +187,53 @@
                 data: keywordList,
                 placeholder: '添加一个屏蔽词',
                 secondaryPlaceholder: '继续添加',
+                onChipAdd: function(){
+                    saveChipsData()
+                },
+                onChipDelete: function(){
+                    saveChipsData()
+                },
             }
             var instances = M.Chips.init(elems, options)
         }
     }
+    // 用于chips触发“添加”和“删除”事件后保存数据
+    function saveChipsData() {
+        var data = M.Chips.getInstance($('.chips')).chipsData
+        var banKeyword = []
+        data.forEach(function(e){
+            var keyword = e.tag
+            banKeyword.push(keyword)
+        })
+        GM_log(banKeyword)
+        // 将数据存储起来
+        GM_setValue('banKeyword', banKeyword)
+    }
     $(document).ready(function() {
+        console.log(GM_listValues())
+        // 如果是第一次使用该脚本，需要初始化banKeyword，并且显示FeatureDiscovery（新用户引导）
+        if(GM_getValue('firstTime') == null) {
+            GM_setValue('banKeyword', [])
+            GM_setValue('firstTime', 1)
+            GM_log('第' + GM_getValue('firstTime') + '次：')
+            setTimeout(function(){
+                addFeatureDiscovery(1)},1000)
+            console.log(GM_getValue('banKeyword'))
+        }
+        else if(GM_getValue('firstTime') < 3) {
+            var count = GM_getValue('firstTime')
+            count ++
+            setTimeout(function(){
+                addFeatureDiscovery(count)
+            },1000)
+            GM_setValue('firstTime', count)
+            GM_log('这是第' + GM_getValue('firstTime') + '次')
+            console.log(GM_getValue('banKeyword'))
+        }
+        else {
+            GM_log('已非新手指引阶段：')
+            console.log(GM_getValue('banKeyword'))
+        }
         // 根据关键字进行屏蔽
         var banKeyword = GM_getValue('banKeyword')
         $('#showBanList').click(function(){
