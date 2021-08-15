@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         烂虎扑屏蔽器
 // @namespace    sssoftwar
-// @version      0.6
+// @version      0.7
 // @description  可以屏蔽虎扑坏帖和你不想看到的内容
 // @author       sssoftwar
 // @license      Apache Licence 2.0
