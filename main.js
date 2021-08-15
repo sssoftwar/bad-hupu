@@ -40,7 +40,7 @@
 </div>
 `));
     // 添加屏蔽词的chips
-    $("body").append($(`<div id="keywordList" class="card-panel green" style="background:grey;display:none; z-index:999;text-align:center;width: 40vh;height: 20vh;position: fixed;left: 0;top: 0;bottom: 0;right: 0;margin: auto;">
+    $("body").append($(`<div id="keywordList" class="card-panel green" style="background:grey;display:none; z-index:999;text-align:center;width: 80vh;height: 20vh;position: fixed;left: 0;top: 0;bottom: 0;right: 0;margin: auto;">
     <div class="chips chips-placeholder chips-initial"></div>
     </div>`));
     // 添加个click事件，用于判断是否点击在chips组件之外
@@ -100,6 +100,23 @@
 
         for(var i = 0; i < links.length; i++){
             $.ajax({url: links[i],async:true,success:function(result){
+                // 如果楼主是关键字包含的
+                var banKeyword = GM_getValue('banKeyword')
+                for(var ii = 0; ii < banKeyword.length; ii++)
+                {
+                    var key = 'class="post-user-comp-info-top-name">' + banKeyword[ii]
+                    var reg = new RegExp(key)
+                    if(reg.test(result))
+                    {
+                        var linkSuffix = $(this)[0].url.match(/\d+/)[0]
+                        var badLink = "[href=\"/" + linkSuffix + ".html\"]"
+                        console.log("楼主坏帖子：" + badLink)
+                        console.log(key)
+                        badLinkCount++
+                        GM_log(badLinkCount)
+                        break
+                    }
+                }
                 if(/您无法访问该帖子/.test(result)||/您访问的帖子不存在/.test(result)) {
                     badLinkCount++
                     GM_log(badLinkCount)
@@ -113,14 +130,14 @@
                         // 不需要看屏蔽效果反馈，就这样
                         //$(badLink).parent().parent().css({'background-color':'yellow','color':'grey'}).remove()
                         // 想看屏蔽效果，就这样
-                        $(badLink).parent().parent().css({'background-color':'#81c784','color':'grey'}).fadeOut(4000)
+                        $(badLink).parent().parent().css({'background-color':'#81c784','color':'grey'}).fadeOut(500)
                     }
                     // “步行街热帖”的操作
                     else if(/list-item-wrap/.test($(badLink).parent().parent().parent()[0].className) || /list-item-wrap/.test($(badLink).parent().parent().parent()[1].className)) {
 //                        GM_log('长度：' + $(badLink).parent().parent().parent().length)
                         if($(badLink).parent().parent().parent().length == 1) {
                             //console.log($(badLink).parent().parent().parent())
-                            $(badLink).parent().parent().parent().css({'background-color':'#81c784','color':'grey'}).fadeOut(4000)
+                            $(badLink).parent().parent().parent().css({'background-color':'#81c784','color':'grey'}).fadeOut(500)
                         }
                         else {
 //                            GM_log('右边也有')
@@ -129,25 +146,26 @@
                             if($(badLink).parent().parent().parent()[1].className === 'list-item-wrap') {
 //                                console.log('主列表：')
 //                                console.log($($(badLink).parent().parent().parent()[1]))
-                                $($(badLink).parent().parent().parent()[1]).css({'background-color':'#81c784','color':'grey'}).fadeOut(4000)
+                                $($(badLink).parent().parent().parent()[1]).css({'background-color':'#81c784','color':'grey'}).fadeOut(500)
                                 }
 //                            console.log('右侧className：')
 //                            console.log($(badLink).children()[1].className)
                             // 再把右边列表中的坏链接处理了
                             if($(badLink).children()[1].className === 'right-post-item') {
-                                $(badLink).children().css({'background-color':'#81c784','color':'grey'}).fadeOut(4000)
+                                $(badLink).children().css({'background-color':'#81c784','color':'grey'}).fadeOut(500)
                                 //GM_log($(badLink).children())
                             }
                         }
                     }
                     // 正常来说不会出现此情况
                     else {
-                        $(badLink).css({'background-color':'red','color':'grey'}).fadeOut(4000)
+                        $(badLink).css({'background-color':'red','color':'grey'}).fadeOut(500)
                     }
 
                 }
                 else
                     console.log(i + ' 或许是正经帖子')
+
             }})
         }
 
@@ -235,11 +253,12 @@
             keywordCount += $('.list-item-wrap:contains(' + banKeyword[j] + ')').length
             keywordCount += $('.right-post-item:contains(' + banKeyword[j] + ')').length
             console.log('关键字屏蔽数量：' + keywordCount)
-          $('li:contains(' + banKeyword[j] + ')').css({'background-color':'#81c784','color':'grey'}).fadeOut(4000)
-          $('.list-item-wrap:contains(' + banKeyword[j] + ')').css({'background-color':'#81c784','color':'grey'}).fadeOut(4000)
-          $('.right-post-item:contains(' + banKeyword[j] + ')').css({'background-color':'#81c784','color':'grey'}).fadeOut(4000)
+          $('li:contains(' + banKeyword[j] + ')').css({'background-color':'#81c784','color':'grey'}).fadeOut(500)
+          $('.list-item-wrap:contains(' + banKeyword[j] + ')').css({'background-color':'#81c784','color':'grey'}).fadeOut(500)
+          $('.right-post-item:contains(' + banKeyword[j] + ')').css({'background-color':'#81c784','color':'grey'}).fadeOut(500)
         }
         // 提示屏蔽的帖子数量
+        /* 不要提示了，win10很烦
         setTimeout(function(){
             var banCount = badLinkCount + keywordCount
             var message = '已屏蔽' + banCount + '条烂虎扑'
@@ -252,8 +271,8 @@
                 ondone: function(){GM_log('done')},
                 onclick: function(){GM_log('click')},
             })
-        }, 2000)
-
+        }, 500)
+*/
         // 屏蔽虎扑游戏
         for(var ii = 0; ii<$('.right-post-title').length;ii++){
             //if($('.right-post-title')[ii].innerHTML=='热门游戏-即点即玩')
